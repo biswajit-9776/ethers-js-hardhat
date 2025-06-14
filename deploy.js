@@ -1,5 +1,6 @@
 const ethers = require("ethers");
 const fs = require("fs-extra");
+require("dotenv").config()
 
 async function main() {
   let provider = new ethers.JsonRpcProvider("http://127.0.0.1:7545");
@@ -11,7 +12,7 @@ async function main() {
   const encryptedJson = fs.readFileSync("./.encryptedKey.json", "utf8");
   let wallet = ethers.Wallet.fromEncryptedJsonSync(
     encryptedJson,
-    process.env.PRIVATE_KEY_PASSOWRD
+    process.env.PRIVATE_KEY_PASSWORD
   );
   wallet = wallet.connect(provider);
   let abi = fs.readFileSync("./SimpleStorage_sol_SimpleStorage.abi", "utf8");
