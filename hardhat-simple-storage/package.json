@@ -20,6 +20,7 @@
     "typechain": "^8.3.0"
   },
   "dependencies": {
+    "hardhat-etherscan": "^1.0.1",
     "prettier": "^3.5.3",
     "prettier-plugin-solidity": "^2.0.0"
   }

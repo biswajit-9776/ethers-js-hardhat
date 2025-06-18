@@ -1,4 +1,5 @@
 require("@nomicfoundation/hardhat-toolbox")
+require("./tasks/block-number")
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
