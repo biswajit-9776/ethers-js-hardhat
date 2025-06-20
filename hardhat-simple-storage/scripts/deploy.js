@@ -20,12 +20,13 @@ async function main() {
 
     const transactionResponse = await simpleStorage.store(9)
     await transactionResponse.wait(1)
-    const updatedFavoriteNumber =await  simpleStorage.retrieve()
+    const updatedFavoriteNumber = await simpleStorage.retrieve()
     console.log(`Updated fvorite number is ${updatedFavoriteNumber}`)
 }
 
 async function verify(contractAddress, args) {
     console.log("Verifying contract...")
+    // Usually when a contract is already verified, re verifying throws an error
     try {
         await run("verify:verify", {
             address: contractAddress,

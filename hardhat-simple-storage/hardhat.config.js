@@ -1,5 +1,7 @@
 require("@nomicfoundation/hardhat-toolbox")
 require("./tasks/block-number")
+require("hardhat-gas-reporter")
+require("solidity-coverage")
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
@@ -11,4 +13,7 @@ module.exports = {
         },
     },
     solidity: "0.8.28",
+    gasReporter: {
+        enabled: false,
+    },
 }

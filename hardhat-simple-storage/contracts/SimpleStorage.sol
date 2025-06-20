@@ -6,7 +6,7 @@ contract SimpleStorage {
     uint256 favoriteNumber;
 
     mapping(string => uint256) nameToFavoriteNumber;
-    People[] people;
+    People[] public people;
     struct People {
         uint256 favoriteNumber;
         string name;
