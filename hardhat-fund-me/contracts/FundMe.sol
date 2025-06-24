@@ -6,16 +6,21 @@ import "./PriceConverter.sol";
 contract FundMe {
     using PriceConverter for uint256;
 
+    AggregatorV3Interface public priceFeed;
     address public immutable i_owner;
     address[] public fundedList;
     uint256 public constant USD_MINIMUM = 50 * 1e18;
 
-    constructor() {
+    constructor(address prideFeedAddress) {
         i_owner = msg.sender;
+        priceFeed = AggregatorV3Interface(prideFeedAddress);
     }
 
     function fund() public payable {
-        require(msg.value.getConversionRate() >= USD_MINIMUM, "Not enough funds");
+        require(
+            msg.value.getConversionRate(priceFeed) >= USD_MINIMUM,
+            "Not enough funds"
+        );
         fundedList.push(msg.sender);
     }
 
@@ -25,7 +30,9 @@ contract FundMe {
         // bool success = payable(msg.sender).send(address(this).balance);
         // require(success, "Unable to withdraw funds");
 
-        (bool sendSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
+        (bool sendSuccess, ) = payable(msg.sender).call{
+            value: address(this).balance
+        }("");
         require(sendSuccess, "Error occured in withdrawing funds");
     }
 
@@ -33,4 +40,4 @@ contract FundMe {
         require(msg.sender == i_owner, "Only owner can withdraw");
         _;
     }
-} 
+}
