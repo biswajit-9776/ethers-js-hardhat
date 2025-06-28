@@ -18,4 +18,7 @@ module.exports = {
             // gasPrice: 130000000000,
         },
     },
+    gasReporter: {
+        enabled: true,
+    },
 }

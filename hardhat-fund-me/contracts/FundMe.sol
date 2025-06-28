@@ -8,10 +8,10 @@ error FundMe__NotOwner();
 contract FundMe {
     using PriceConverter for uint256;
 
-    AggregatorV3Interface public priceFeed;
+    AggregatorV3Interface public s_priceFeed;
     address public immutable i_owner;
-    address[] public fundedList;
-    mapping(address => uint256) public addressToAmountFunded;
+    address[] public s_fundedList;
+    mapping(address => uint256) public s_addressToAmountFunded;
     uint256 public constant USD_MINIMUM = 50 * 1e18;
 
     modifier onlyOwner() {
@@ -22,7 +22,7 @@ contract FundMe {
 
     constructor(address prideFeedAddress) {
         i_owner = msg.sender;
-        priceFeed = AggregatorV3Interface(prideFeedAddress);
+        s_priceFeed = AggregatorV3Interface(prideFeedAddress);
     }
 
     // In Solidity, a function marked as external:
@@ -38,11 +38,11 @@ contract FundMe {
 
     function fund() public payable {
         require(
-            msg.value.getConversionRate(priceFeed) >= USD_MINIMUM,
+            msg.value.getConversionRate(s_priceFeed) >= USD_MINIMUM,
             "Not enough funds"
         );
-        fundedList.push(msg.sender);
-        addressToAmountFunded[msg.sender] += msg.value;
+        s_fundedList.push(msg.sender);
+        s_addressToAmountFunded[msg.sender] += msg.value;
     }
 
     function withdraw() public onlyOwner {
@@ -51,13 +51,45 @@ contract FundMe {
         // bool success = payable(msg.sender).send(address(this).balance);
         // require(success, "Unable to withdraw funds");
 
-        (bool sendSuccess, ) = payable(msg.sender).call{
+        (bool sendSuccess, ) = i_owner.call{
             value: address(this).balance
         }("");
         require(sendSuccess, "Error occured in withdrawing funds");
+
+        for (
+            uint256 funderIndex = 0;
+            funderIndex < s_fundedList.length;
+            funderIndex++
+        ) {
+            s_addressToAmountFunded[s_fundedList[funderIndex]] = 0;
+        }
+        s_fundedList = new address[](0);
+    }
+
+    function cheaperWithdraw() public payable onlyOwner {
+        address[] memory funders = s_fundedList;
+        for (
+            uint256 funderIndex = 0;
+            funderIndex < funders.length;
+            funderIndex++
+        ) {
+            s_addressToAmountFunded[funders[funderIndex]] = 0;
+        }
+        s_fundedList = new address[](0);
+
+        // payable(msg.sender).transfer(address(this).balance);
+
+        // bool success = payable(msg.sender).send(address(this).balance);
+        // require(success, "Unable to withdraw funds");
+
+        (bool sendSuccess, ) = i_owner.call{
+            value: address(this).balance
+        }("");
+        require(sendSuccess, "Error occured in withdrawing funds");
+
     }
 
     function getVersion() public view returns (uint256) {
-        return PriceConverter.getVersion(priceFeed);
+        return PriceConverter.getVersion(s_priceFeed);
     }
 }
