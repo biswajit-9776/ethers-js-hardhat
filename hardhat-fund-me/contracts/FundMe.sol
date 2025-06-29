@@ -8,10 +8,10 @@ error FundMe__NotOwner();
 contract FundMe {
     using PriceConverter for uint256;
 
-    AggregatorV3Interface public s_priceFeed;
-    address public immutable i_owner;
+    AggregatorV3Interface private s_priceFeed;
+    address private immutable i_owner;
     address[] public s_fundedList;
-    mapping(address => uint256) public s_addressToAmountFunded;
+    mapping(address => uint256) private s_addressToAmountFunded;
     uint256 public constant USD_MINIMUM = 50 * 1e18;
 
     modifier onlyOwner() {
@@ -91,5 +91,17 @@ contract FundMe {
 
     function getVersion() public view returns (uint256) {
         return PriceConverter.getVersion(s_priceFeed);
+    }
+    function getPriceFeed() public view returns (AggregatorV3Interface) {
+        return s_priceFeed;
+    }
+    function getOwner() public view returns (address) {
+        return i_owner;
+    }
+    function getAddressToAmountFunded(address key) public view returns (uint256) {
+        return s_addressToAmountFunded[key];
+    }
+    function getFundersList(uint256 value) public view returns (address){
+        return s_fundedList[value];
     }
 }
