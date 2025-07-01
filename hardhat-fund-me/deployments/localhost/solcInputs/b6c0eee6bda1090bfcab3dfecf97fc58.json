@@ -1,0 +1,42 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\n// solhint-disable-next-line interface-starts-with-i\ninterface AggregatorV3Interface {\n  function decimals() external view returns (uint8);\n\n  function description() external view returns (string memory);\n\n  function version() external view returns (uint256);\n\n  function getRoundData(\n    uint80 _roundId\n  ) external view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);\n\n  function latestRoundData()\n    external\n    view\n    returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);\n}\n"
+    },
+    "contracts/FundMe.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n\npragma solidity ^0.8.0;\nimport \"./PriceConverter.sol\";\n\nerror FundMe__NotOwner();\n\ncontract FundMe {\n    using PriceConverter for uint256;\n\n    AggregatorV3Interface private s_priceFeed;\n    address private immutable i_owner;\n    address[] public s_fundedList;\n    mapping(address => uint256) private s_addressToAmountFunded;\n    uint256 public constant USD_MINIMUM = 50 * 1e18;\n\n    modifier onlyOwner() {\n        // require(msg.sender == i_owner, \"Only owner can withdraw\");\n        if (msg.sender != i_owner) revert FundMe__NotOwner();\n        _;\n    }\n\n    constructor(address prideFeedAddress) {\n        i_owner = msg.sender;\n        s_priceFeed = AggregatorV3Interface(prideFeedAddress);\n    }\n\n    // In Solidity, a function marked as external:\n    // Can be called from outside the contract (e.g., by a transaction or another contract).\n    // Cannot be called internally from within the same contract without this. or address(this).call().\n    receive() external payable {\n        fund();\n    }\n\n    fallback() external payable {\n        fund();\n    }\n\n    function fund() public payable {\n        require(\n            msg.value.getConversionRate(s_priceFeed) >= USD_MINIMUM,\n            \"Not enough funds\"\n        );\n        s_fundedList.push(msg.sender);\n        s_addressToAmountFunded[msg.sender] += msg.value;\n    }\n\n    function withdraw() public onlyOwner {\n        // payable(msg.sender).transfer(address(this).balance);\n\n        // bool success = payable(msg.sender).send(address(this).balance);\n        // require(success, \"Unable to withdraw funds\");\n\n        (bool sendSuccess, ) = i_owner.call{\n            value: address(this).balance\n        }(\"\");\n        require(sendSuccess, \"Error occured in withdrawing funds\");\n\n        for (\n            uint256 funderIndex = 0;\n            funderIndex < s_fundedList.length;\n            funderIndex++\n        ) {\n            s_addressToAmountFunded[s_fundedList[funderIndex]] = 0;\n        }\n        s_fundedList = new address[](0);\n    }\n\n    function cheaperWithdraw() public payable onlyOwner {\n        address[] memory funders = s_fundedList;\n        for (\n            uint256 funderIndex = 0;\n            funderIndex < funders.length;\n            funderIndex++\n        ) {\n            s_addressToAmountFunded[funders[funderIndex]] = 0;\n        }\n        s_fundedList = new address[](0);\n\n        // payable(msg.sender).transfer(address(this).balance);\n\n        // bool success = payable(msg.sender).send(address(this).balance);\n        // require(success, \"Unable to withdraw funds\");\n\n        (bool sendSuccess, ) = i_owner.call{\n            value: address(this).balance\n        }(\"\");\n        require(sendSuccess, \"Error occured in withdrawing funds\");\n\n    }\n\n    function getVersion() public view returns (uint256) {\n        return PriceConverter.getVersion(s_priceFeed);\n    }\n    function getPriceFeed() public view returns (AggregatorV3Interface) {\n        return s_priceFeed;\n    }\n    function getOwner() public view returns (address) {\n        return i_owner;\n    }\n    function getAddressToAmountFunded(address key) public view returns (uint256) {\n        return s_addressToAmountFunded[key];\n    }\n    function getFundersList(uint256 value) public view returns (address){\n        return s_fundedList[value];\n    }\n}\n"
+    },
+    "contracts/PriceConverter.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n\npragma solidity ^0.8.0;\n\nimport \"@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol\";\n\nlibrary PriceConverter {\n    function getVersion(AggregatorV3Interface priceFeed) internal view returns (uint256) {\n        return priceFeed.version();\n    }\n\n    function getConversionRate(\n        uint256 value,\n        AggregatorV3Interface priceFeed\n    ) internal view returns (uint256) {\n        uint256 price = getPrice(priceFeed);\n        return (price * value) / 1e18;\n    }\n\n    function getPrice(\n        AggregatorV3Interface priceFeed\n    ) internal view returns (uint256) {\n        (, int256 price, , , ) = priceFeed.latestRoundData();\n        return uint256(price * 1e10);\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "evmVersion": "paris",
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
