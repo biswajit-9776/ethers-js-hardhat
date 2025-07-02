@@ -4,13 +4,24 @@
     <title>Fund Me App</title>
 </head>
 <body>
-    <script src="./index.js" type="module">
-        
-    </script>
-    <button id="connectButton"> Connect </button>
-    <button id="getBalance" onclick="getBalance()">Get Balance</button>
-    <button id="connectButton"> Fund </button>
+    <div>
+    <button id="connectButton" onclick="connect()" style="width: 130px;height: 50px; font-size: large;"> Connect </button>
+    </div>
+    <br>
+    <div id="balanceDiv">
+    <button id="getBalanceButton" onclick="getBalance()" style="width: 150px;height: 50px; font-size: large;">Get Balance</button>
+    <span id="balance-display"></span>
+    </div>
+    <br>
+    <div>
+    <button id="withdrawButton" onclick="withdraw()" style="width: 100px;height: 50px; font-size: large;">Withdraw</button>
+    </div>
+    <br>
+    <div>
+    <button id="fundButton" onclick="fund()" style="width: 100px;height: 50px; font-size: large;"> Fund </button>
     <label> ETH Amount </label>
     <input id="ethAmount" placeholder="0.1">
+    </div>
 </body>
+<script src="./index.js" type="module"></script>
 </html>

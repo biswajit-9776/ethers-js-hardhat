@@ -6,7 +6,7 @@ module.exports = async (hre) => {
     const { deployments, getNamedAccounts } = hre
     const { deploy, log } = deployments
     const { deployer } = await getNamedAccounts()
-    console.log("Deploying contract FundMe...")
+    console.log("Deploying contract FunStorage...")
 
     const funStorage = await deploy("FunStorage", {
         from: deployer,
