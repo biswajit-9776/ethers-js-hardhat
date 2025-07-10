@@ -9,7 +9,7 @@ import {AutomationCompatibleInterface} from "@chainlink/contracts/src/v0.8/autom
 error Raffle__NotEnoughETHSent();
 error Raffle__NotOpen();
 
-abstract contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
+contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface {
     enum RaffleState {
         OPEN,
         CALCULATING
@@ -71,7 +71,7 @@ abstract contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface
      * 4. The lottery should be in an "open" state i.e, when a new winner is being
      * selected, no new players are allowed to join
      */
-    function checkUpKeep(
+    function checkUpkeep(
         bytes calldata /*checkData*/
     ) external view returns (bool upkeepNeeded, bytes memory /*performData*/) {
         bool isOpen = (s_raffleState == RaffleState.OPEN);
@@ -81,7 +81,7 @@ abstract contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface
         return ((isOpen && timePassed && hasEnoughPlayers && hasBalance), "");
     }
 
-    function performUpkeep() external {
+    function performUpkeep(bytes calldata /*performData*/) external {
         s_raffleState = RaffleState.CALCULATING;
         s_vrfCoordinator.requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
@@ -142,5 +142,9 @@ abstract contract Raffle is VRFConsumerBaseV2Plus, AutomationCompatibleInterface
 
     function getLatestConfirmations() public pure returns (uint16) {
         return REQUEST_CONFIRMATIONS;
+    }
+
+    function  getInterval() public view returns (uint256) {
+        return i_interval;
     }
 }
