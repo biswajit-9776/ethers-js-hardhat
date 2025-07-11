@@ -11,9 +11,9 @@ module.exports = async (hre) => {
     const keyHash = networkConfig[chainId]["key_hash"]
     const callbackGasLimit = networkConfig[chainId]["callbackGasLimit"]
     const interval = networkConfig[chainId]["interval"]
-    let vrfCoordinatorV2Address, subscriptionId
+    let VRFCoordinatorV2Mock, vrfCoordinatorV2Address, subscriptionId
     if (deploymentChains.includes(network.name)) {
-        const VRFCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
+        VRFCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
         vrfCoordinatorV2Address = VRFCoordinatorV2Mock.target
         const transactionResponse = await VRFCoordinatorV2Mock.createSubscription()
         const transactionReceipt = await transactionResponse.wait(1)
@@ -39,6 +39,9 @@ module.exports = async (hre) => {
             log: true,
             waitConfirmations: 1,
         })
+        log("adding raffle contract as consumer");
+        await VRFCoordinatorV2Mock.addConsumer(subscriptionId, raffle.address)
+        console.log("consumer added!");
         if (!deploymentChains.includes(network.name)) {
             log("Verifying contract Raffle...")
             await verify(raffle.address, args)
