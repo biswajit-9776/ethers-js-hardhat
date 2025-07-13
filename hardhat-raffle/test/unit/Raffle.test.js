@@ -136,31 +136,54 @@ const { int } = require("hardhat/internal/core/params/argumentTypes")
                   ).to.be.revertedWith("nonexistent request")
               })
               it("Picks a winner, resets the lottery and sends the money", async () => {
-                const additionalEntrants = 3
-                const accountStartingIndex = 1
-                const accounts = await ethers.getSigner()
-                for(let i = accountStartingIndex; i < accountStartingIndex + additionalEntrants; i++){
-                    const accountConnectedRaffle = raffle.connect(accounts[i])
-                    await accountConnectedRaffle.enterRaffle({value: entranceFee})
-                }
-                const startingTimeStamp = await raffle.getLatestTimeStamp()
-
-                await new Promise(async (resolve, reject,) => {
-                    try{
-                        const recentWinner = await raffle.getRecentWinner()
-                        console.log(`Recent Winner is ${recentWinner}`)
-                        const endingTimeStamp = await raffle.getLatestTimeStamp()
-
-                        resolve()
-                    }
-                    catch(e){
-                        reject()
-                    }
-                })
-                const tx = await raffle.performUpkeep()
-                const txReceipt = await tx.wait(1)
-                const receipId = txReceipt.logs[1].args.receipId
-                await vrfCoordinatorV2Mock.fulfillRandomWords(receipId, raffle.address)
+                  const additionalEntrants = 3
+                  const accountStartingIndex = 1
+                  const accounts = await ethers.getSigners()
+                  for (
+                      let i = accountStartingIndex;
+                      i < accountStartingIndex + additionalEntrants;
+                      i++
+                  ) {
+                      const accountConnectedRaffle = raffle.connect(accounts[i])
+                      await accountConnectedRaffle.enterRaffle({ value: entranceFee })
+                  }
+                  console.log(accounts[0].address)
+                  console.log(accounts[1].address)
+                  console.log(accounts[2].address)
+                  console.log(accounts[3].address)
+                  const startingTimeStamp = await raffle.getLatestTimestamp()
+                  await new Promise(async (resolve, reject) => {
+                      raffle.once("WinnerPicked", async () => {
+                          try {
+                              const recentWinner = await raffle.getRecentWinner()
+                              console.log(`Recent Winner is ${recentWinner}`)
+                              const endingTimeStamp = await raffle.getLatestTimestamp()
+                              const raffleState = await raffle.getRaffleState()
+                              const winnerBalance = await ethers.provider.getBalance(recentWinner)
+                              assert.equal(
+                                  winnerBalance,
+                                  startingBalance + entranceFee * BigInt(additionalEntrants + 1),
+                              )
+                              assert(endingTimeStamp > startingTimeStamp)
+                              assert.equal(raffleState, 0)
+                              assert.equal(recentWinner, accounts[1].address)
+                              resolve()
+                          } catch (e) {
+                              reject(e)
+                          }
+                      })
+                      try {
+                          const tx = await raffle.performUpkeep("0x")
+                          const txReceipt = await tx.wait(1)
+                          startingBalance = await ethers.provider.getBalance(accounts[1])
+                          await vrfCoordinatorV2Mock.fulfillRandomWords(
+                              txReceipt.logs[1].args.requestId,
+                              raffle.target,
+                          )
+                      } catch (e) {
+                          reject(e)
+                      }
+                  })
               })
           })
       })

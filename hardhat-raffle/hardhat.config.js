@@ -26,4 +26,7 @@ module.exports = {
             default: 1,
         },
     },
+    mocha: {
+        setTimeout: 200000,
+    }
 }
