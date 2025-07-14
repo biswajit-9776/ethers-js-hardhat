@@ -1,9 +1,9 @@
 const { ethers, deployments, getNamedAccounts, network } = require("hardhat")
-const { deploymentChains, networkConfig } = require("../../helper-hardhat-config")
+const { developmentChains, networkConfig } = require("../../helper-hardhat-config")
 const { expect, assert } = require("chai")
 const { int } = require("hardhat/internal/core/params/argumentTypes")
 
-!deploymentChains.includes(network.name)
+!developmentChains.includes(network.name)
     ? describe.skip
     : describe("Unit test for Raffle", function () {
           let vrfCoordinatorV2Mock, raffle, deployer, entranceFee, interval

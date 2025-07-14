@@ -17,6 +17,6 @@ const networkConfig = {
     },
 }
 
-const deploymentChains = ["hardhat", "localhost"]
+const developmentChains = ["hardhat", "localhost"]
 
-module.exports = { networkConfig, deploymentChains }
+module.exports = { networkConfig, developmentChains }
